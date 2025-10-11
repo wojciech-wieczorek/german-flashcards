@@ -1,4 +1,5 @@
-# Flashcards app
+# German flashcards
+__An application for learning new words in German.__
 
 ## Prerequisites
 - PHP
