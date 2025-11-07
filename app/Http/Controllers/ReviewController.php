@@ -2,8 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use App\Data\Flashcard;
-use DOMDocument;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
@@ -15,10 +13,7 @@ class ReviewController extends Controller
      */
     public function index()
     {
-        $flashcardsFileContents = Storage::disk('local')->get('deutsch.xml');
-
-        $flashcardsXML = new DOMDocument('1.0', 'UTF-8');
-        $flashcardsXML->loadXML($flashcardsFileContents);
+        $flashcardsXML = app('flashcardsXML');
 
         $flashcards = $flashcardsXML->getElementsByTagName('flashcard');
         $boxSizes = [];
@@ -34,9 +29,27 @@ class ReviewController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(Request $request, string $box)
+    public function show(Request $request, string $box, bool $shuffle = true)
     {
-        return Inertia::render('subpages/BoxReview', ['flashcards' => Flashcard::getBoxByNumber($box)]);
+        $flashcardsXML = app('flashcardsXML');
+
+        $flashcards = $flashcardsXML->getElementsByTagName('flashcard');
+        $boxFlashcards = [];
+
+        foreach ($flashcards as $index => $flashcard) {
+            if ($box == $flashcard->getElementsByTagName('box')->item(0)->nodeValue) {
+                $question = $flashcard->getElementsByTagName('question')->item(0)->nodeValue ?? '';
+                $answer = $flashcard->getElementsByTagName('answer')->item(0)->nodeValue ?? '';
+
+                $boxFlashcards[] = ['box' => $box, 'question' => $question, 'answer' => $answer, 'index' => $index];
+            }
+        }
+
+        if ($shuffle) {
+            shuffle($boxFlashcards);
+        }
+
+        return Inertia::render('subpages/BoxReview', ['flashcards' => $boxFlashcards]);
 
         // if ($request->method()) {
         //     return Inertia::render('subpages/BoxReview');

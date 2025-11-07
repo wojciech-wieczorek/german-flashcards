@@ -7,20 +7,20 @@ const props = defineProps(['flashcard']);
 const emit = defineEmits(['check', 'skip']);
 
 const answer = ref('');
+const germanCharacters = ['ä', 'ö', 'ü', 'ß'];
 
 const handleSubmit = () => {
     if (answer.value == props.flashcard.answer) {
         emit('check', [true, 'Correct!']);
         axios.patch(`/flashcards/${props.flashcard.index}`, { box: Math.min(parseInt(props.flashcard.box) + 1, 6) });
+        answer.value = '';
     } else {
         emit('check', [false, `Incorrect! The correct answer: ${props.flashcard.answer}`]);
         axios.patch(`/flashcards/${props.flashcard.index}`, { box: 1 });
+        answer.value = '';
     }
 };
 
-const germanCharacters = ['ä', 'ö', 'ü', 'ß'];
-
-// Classes
 const flashcardClass = clsx('w-xl rounded border-2 border-sky-700 bg-sky-100 p-5 text-2xl');
 const legendClass = clsx('my-5 text-center text-3xl font-bold text-sky-950');
 const fieldsetClass = clsx('flex flex-col items-center');
@@ -39,18 +39,18 @@ const buttonClass = clsx(
 
 <template>
     <div :class="flashcardClass">
-        <form @submit.prevent="handleSubmit" id="flashcardReviewFrom">
+        <form @submit.prevent="handleSubmit" id="flashcardReviewForm" autocomplete="off">
             <fieldset :class="fieldsetClass">
                 <legend :class="legendClass">{{ flashcard.question }}</legend>
                 <label :class="labelClass" for="answer">Answer</label>
-                <input :class="inputClass" v-model="answer" type="text" name="answer" id="answer" />
+                <input :class="inputClass" v-model="answer" v-focus type="text" name="answer" id="answer" />
                 <div :class="buttonsContainerClass">
                     <input v-for="char in germanCharacters" :class="characterButtonClass" type="button" :value="char" @click="answer += char" />
                 </div>
             </fieldset>
         </form>
         <div :class="buttonsContainerClass">
-            <input :class="buttonClass" type="submit" form="flashcardReviewFrom" value="Check" />
+            <input :class="buttonClass" type="submit" form="flashcardReviewForm" value="Check" />
             <input :class="buttonClass" type="button" value="Skip" @click="$emit('skip')" />
         </div>
     </div>

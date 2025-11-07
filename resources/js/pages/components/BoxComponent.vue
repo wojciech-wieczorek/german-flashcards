@@ -10,7 +10,7 @@ const boxColorClass = {
     3: 'bg-amber-200 hover:border-amber-400 text-amber-950',
     4: 'bg-orange-200 hover:border-orange-400 text-orange-950',
     5: 'bg-red-200 hover:border-red-400 text-red-950',
-    archive: 'bg-gray-950 text-gray-50 hover:border-gray-400',
+    6: 'bg-gray-950 text-gray-50 hover:border-gray-400',
 };
 const boxClass = clsx('rounded-xl border-2 border-transparent bg-amber-200 p-5 text-2xl select-none', boxColorClass[props.number]);
 const sizeClass = clsx('text-center text-base');
