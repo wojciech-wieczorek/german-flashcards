@@ -2,5 +2,5 @@
 
 return [
     App\Providers\AppServiceProvider::class,
-    App\Providers\FlashcardProvider::class,
+    App\Providers\FlashcardsLoaderServiceProvider::class,
 ];

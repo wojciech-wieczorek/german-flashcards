@@ -13,7 +13,12 @@ createInertiaApp({
     setup({ el, App, props, plugin }) {
         createApp({ render: () => h(App, props) })
             .use(plugin)
-            .mount(el);
+            .directive('focus', {
+                mounted(el: HTMLElement) {
+                    el.focus();
+                },
+            })
+            .mount(el)
     },
     progress: {
         color: '#4B5563',

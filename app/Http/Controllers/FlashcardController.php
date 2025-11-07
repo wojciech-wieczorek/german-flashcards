@@ -2,28 +2,34 @@
 
 namespace App\Http\Controllers;
 
-use App\Data\Flashcard;
 use App\Http\Requests\StoreFlashcardRequest;
 use App\Http\Requests\UpdateFlashcardRequest;
 use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
+use Illuminate\Http\Request;
 
 class FlashcardController extends Controller
 {
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        $flashcardsFileContents = Storage::disk('local')->get('deutsch.xml');
-
-        $flashcardsXML = new \DOMDocument('1.0', 'UTF-8');
-        $flashcardsXML->loadXML($flashcardsFileContents);
+        $flashcardsXML = app('flashcardsXML');
 
         $flashcards = $flashcardsXML->getElementsByTagName('flashcard');
         $output = [];
 
+        $page = intval($request->query('page', 1));
+        $maxPages = ceil($flashcards->length / 15);
+
         foreach ($flashcards as $index => $flashcard) {
+            if ($index < ($page - 1) * 15) {
+                continue;
+            } elseif ($index >= $page * 15) {
+                break;
+            }
+
             $box = $flashcard->getElementsByTagName('box')->item(0)->nodeValue ?? '';
             $question = $flashcard->getElementsByTagName('question')->item(0)->nodeValue ?? '';
             $answer = $flashcard->getElementsByTagName('answer')->item(0)->nodeValue ?? '';
@@ -31,7 +37,8 @@ class FlashcardController extends Controller
             $output[] = ['box' => $box, 'question' => $question, 'answer' => $answer, 'index' => $index];
         }
 
-        return Inertia::render('Collection', ['flashcards' => $output]);
+
+        return Inertia::render('Collection', ['flashcards' => $output, 'page' => $page, 'maxPages' => $maxPages]);
     }
 
     /**
@@ -47,19 +54,7 @@ class FlashcardController extends Controller
      */
     public function store(StoreFlashcardRequest $request)
     {
-        $flashcardsXML = new \DOMDocument('1.0', 'UTF-8');
-        $flashcardsXML->preserveWhiteSpace = false;
-        $flashcardsXML->formatOutput = true;
-
-        if (Storage::disk('local')->exists('deutsch.xml')) {
-            $flashcardsFileContents = Storage::disk('local')->get('deutsch.xml');
-            $flashcardsXML->loadXML($flashcardsFileContents);
-            $flashcards = $flashcardsXML->documentElement;
-
-        } else {
-            $flashcards = $flashcardsXML->createElement('flashcards');
-            $flashcardsXML->appendChild($flashcards);
-        }
+        $flashcardsXML = app('flashcardsXML');
 
         $flashcard = $flashcardsXML->createElement('flashcard');
 
@@ -70,9 +65,10 @@ class FlashcardController extends Controller
         $flashcard->appendChild($box);
         $flashcard->appendChild($question);
         $flashcard->appendChild($answer);
-        $flashcards->appendChild($flashcard);
 
-        Storage::disk('local')->put('deutsch.xml', $flashcardsXML->saveXML());
+        $flashcardsXML->documentElement->appendChild($flashcard);
+
+        Storage::disk('local')->put(config('database_xml.filename'), $flashcardsXML->saveXML());
 
         return Inertia::render('Create', ['message' => "\"{$request->input('question')}\" flashcard was added successfully."]);
     }
@@ -82,10 +78,7 @@ class FlashcardController extends Controller
      */
     public function show(int $index)
     {
-        $flashcardsFileContents = Storage::disk('local')->get('deutsch.xml');
-
-        $flashcardsXML = new \DOMDocument('1.0', 'UTF-8');
-        $flashcardsXML->loadXML($flashcardsFileContents);
+        $flashcardsXML = app('flashcardsXML');
 
         $flashcards = $flashcardsXML->getElementsByTagName('flashcard');
         $flashcard = $flashcards[$index];
@@ -110,21 +103,15 @@ class FlashcardController extends Controller
      */
     public function update(UpdateFlashcardRequest $request, int $index)
     {
-        $flashcardsXML = new \DOMDocument('1.0', 'UTF-8');
-        $flashcardsXML->preserveWhiteSpace = false;
-        $flashcardsXML->formatOutput = true;
+        $flashcardsXML = app('flashcardsXML');
 
-        $flashcardsFileContents = Storage::disk('local')->get('deutsch.xml');
-        $flashcardsXML->loadXML($flashcardsFileContents);
-        $flashcards = $flashcardsXML->documentElement;
-
-        $flashcard = $flashcards->getElementsByTagName('flashcard')->item($index);
+        $flashcard = $flashcardsXML->documentElement->getElementsByTagName('flashcard')->item($index);
 
         foreach ($request->except(['index']) as $key => $value) {
             $flashcard->getElementsByTagName($key)->item(0)->nodeValue = $value;
         }
 
-        Storage::disk('local')->put('deutsch.xml', $flashcardsXML->saveXML());
+        Storage::disk('local')->put(config('database_xml.filename'), $flashcardsXML->saveXML());
     }
 
     /**
@@ -132,8 +119,21 @@ class FlashcardController extends Controller
      */
     public function destroy(int $index)
     {
-        Flashcard::destroy($index);
+        $flashcardsXML = app('flashcardsXML');
 
-        return $this->index();
+        $flashcards = $flashcardsXML->getElementsByTagName('flashcard');
+
+        foreach ($flashcards as $i => $flashcard) {
+            if ($index == $i) {
+                $flashcard->remove();
+                Storage::disk('local')->put(config('database_xml.filename'), $flashcardsXML->saveXML());
+
+                return redirect('/flashcards');
+            }
+        }
+
+        report('Flashcard not found.');
+
+        return redirect('/flashcards');
     }
 }
