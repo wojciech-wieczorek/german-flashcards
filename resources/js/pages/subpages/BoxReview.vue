@@ -51,18 +51,20 @@ const containerClass = clsx('flex flex-col items-center gap-5');
     <article :class="articleClass">
         <HeaderComponent>Review cards</HeaderComponent>
 
-        <div v-if="flashcardIndex < flashcards.length" :class="containerClass">
+        <div :class="containerClass">
             <CalloutComponent :type="callout.type" v-if="callout.isOpen">
                 {{ callout.message }}
             </CalloutComponent>
+
             <FlashcardComponent
                 v-if="flashcardIndex < flashcards.length"
                 @check="(msg) => handleCheck(msg)"
                 @skip="handleSkip"
                 v-bind:flashcard="flashcards[flashcardIndex]"
             ></FlashcardComponent>
+
+            <TallyComponent v-else :tally></TallyComponent>
         </div>
 
-        <TallyComponent v-else :tally></TallyComponent>
     </article>
 </template>

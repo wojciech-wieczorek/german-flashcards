@@ -1,12 +1,13 @@
 <script setup>
 import axios from 'axios';
 import clsx from 'clsx';
-import { ref } from 'vue';
+import { nextTick, ref } from 'vue';
 
 const props = defineProps(['flashcard']);
 const emit = defineEmits(['check', 'skip']);
 
 const answer = ref('');
+const answerInput = ref(null);
 const germanCharacters = ['ä', 'ö', 'ü', 'ß'];
 
 const handleSubmit = () => {
@@ -21,6 +22,12 @@ const handleSubmit = () => {
     }
 };
 
+const handleCharacterButtonClick = (event) => {
+    answer.value += event.target.value;
+    nextTick(() => {
+        answerInput.value?.focus();
+    });
+};
 const flashcardClass = clsx('w-xl rounded border-2 border-sky-700 bg-sky-100 p-5 text-2xl');
 const legendClass = clsx('my-5 text-center text-3xl font-bold text-sky-950');
 const fieldsetClass = clsx('flex flex-col items-center');
@@ -43,9 +50,15 @@ const buttonClass = clsx(
             <fieldset :class="fieldsetClass">
                 <legend :class="legendClass">{{ flashcard.question }}</legend>
                 <label :class="labelClass" for="answer">Answer</label>
-                <input :class="inputClass" v-model="answer" v-focus type="text" name="answer" id="answer" />
+                <input :class="inputClass" v-model="answer" ref="answerInput" v-focus type="text" name="answer" id="answer" />
                 <div :class="buttonsContainerClass">
-                    <input v-for="char in germanCharacters" :class="characterButtonClass" type="button" :value="char" @click="answer += char" />
+                    <input
+                        v-for="char in germanCharacters"
+                        :class="characterButtonClass"
+                        type="button"
+                        :value="char"
+                        @click="handleCharacterButtonClick"
+                    />
                 </div>
             </fieldset>
         </form>
