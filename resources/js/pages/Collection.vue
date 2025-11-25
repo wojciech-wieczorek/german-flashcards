@@ -71,16 +71,16 @@ const selectedPaginationButtonClass = clsx(
                 </tr>
             </thead>
             <tbody :class="tbodyClass">
-                <tr v-for="(flashcard, idx) in flashcards">
+                <tr v-for="flashcard in flashcards">
                     <td :class="tdClass">{{ flashcard.question }}</td>
                     <td :class="tdClass">{{ flashcard.answer }}</td>
                     <td :class="tdClass">{{ flashcard.box }}</td>
                     <td :class="tdClass">
                         <div :class="buttonsContainerClass">
-                            <form @submit.prevent="handleModify(idx)">
+                            <form @submit.prevent="handleModify(flashcard.index)">
                                 <button :class="[buttonClass['modify'], buttonClass['all']]" type="submit">Modify</button>
                             </form>
-                            <form @submit.prevent="handleOpenModal(idx)">
+                            <form @submit.prevent="handleOpenModal(flashcard.index)">
                                 <button :class="[buttonClass['delete'], buttonClass['all']]" type="submit">Delete</button>
                             </form>
                         </div>
@@ -105,7 +105,7 @@ const selectedPaginationButtonClass = clsx(
                 {{ i }}
             </button>
         </div>
-        
+
         <ModalComponent v-if="isModalOpen" @close="handleCloseModal" @confirm="handleDelete">{{
             `Do you want to delete '${flashcards[flashcardIndex] && flashcards[flashcardIndex].question}' flashcard?`
         }}</ModalComponent>

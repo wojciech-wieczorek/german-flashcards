@@ -21,8 +21,8 @@ onBeforeUnmount(() => {
     window.removeEventListener('keydown', handleGlobalEnter);
 });
 
+const tallyContainerClass = clsx('mx-auto my-3 flex w-xl flex-col items-center rounded border-2 border-sky-300 bg-sky-50');
 const subheaderClass = clsx('my-3 text-center text-4xl font-bold text-sky-900');
-const tallyContainerClass = clsx('mx-auto my-5 flex w-xl flex-col items-center rounded border-2 border-sky-300 bg-sky-50');
 const tallyCorrectClass = clsx('my-1 text-3xl text-green-800');
 const tallyIncorrectClass = clsx('my-1 text-3xl text-red-800');
 const tallySkippedClass = clsx('my-1 text-3xl text-sky-800');
