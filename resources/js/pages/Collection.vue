@@ -15,7 +15,6 @@ const flashcardIndex = ref(null);
 const form = useForm();
 
 const handleModify = (idx) => {
-    console.log(idx);
     form.get(`/flashcards/${idx}/edit`);
 };
 
